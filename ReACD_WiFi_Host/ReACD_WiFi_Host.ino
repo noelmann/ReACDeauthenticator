@@ -4,7 +4,7 @@
 #include <WebServer.h>
 #include <DNSServer.h>
 
-const char* ap_ssid = "SchulungsnetzTHX1138";
+const char* ap_ssid = "ReACD-SchulungsnetzTHX1138";
 const char* ap_password = "andromeda";
 IPAddress ip = IPAddress(192,168,178,1);
 IPAddress nmask = IPAddress(255,255,255,0);
@@ -32,7 +32,7 @@ void handleSecret()
   </head>
   <body style="font-family:Arial;text-align:center;padding:30px">
     <h1>Willkommen auf der Geheimseite der ILLUMINATI</h1>
-    <p>Der Hotspot ist...</p>
+    <p>Das Netzwerk ist...</p>
     <p>100%ig Illuminati confirmed.</p>
   </body>
   </html>
@@ -50,8 +50,8 @@ void handleRoot() {
     <title>Willkommen</title>
   </head>
   <body style="font-family:Arial;text-align:center;padding:30px">
-    <h1>Willkommen auf der Startseite des Schulungsnetzes!</h1>
-    <p>Der Hotspot ist...</p>
+    <h1>Willkommen auf der Startseite des ReACD-Schulungsnetzes!</h1>
+    <p>Das Netzwerk ist...</p>
     <p>100%ig einsatzbereit.</p>
   </body>
   </html>
