@@ -5,7 +5,7 @@
 #include <DNSServer.h>
 #include <esp_wifi.h>
 
-const char* ap_ssid = "ReACD-SchulungsnetzTHX1138";
+const char* ap_ssid = "schulungsnetz";
 const char* ap_password = "andromeda";
 IPAddress ip = IPAddress(192,168,178,1);
 IPAddress nmask = IPAddress(255,255,255,0);
@@ -70,6 +70,7 @@ void handleNotFound() {
 
 void setup() {
 
+  pinMode(readyIndicatorPin, OUTPUT);
   digitalWrite(readyIndicatorPin, LOW);
   Serial.begin(9600);
   Serial.println("Starting ESP32 access point...");
@@ -77,8 +78,10 @@ void setup() {
   WiFi.mode(WIFI_AP);
   WiFi.setSleep(false);
 
+  WiFi.setTxPower(WIFI_POWER_19_5dBm);
+  WiFi.softAPConfig(ip,ip,nmask);
   // Configure access point
-  while(!WiFi.softAP(ap_ssid, ap_password))
+  while(!WiFi.softAP(ap_ssid, ap_password,3))
   {
       Serial.println("ERROR: Failed to start hotspot!");
       delay(1000);   
@@ -86,7 +89,7 @@ void setup() {
 
 
 //disable protected management frames
-wifi_config_t wifi_config = {};
+/*wifi_config_t wifi_config = {};
 
 esp_err_t pmf_err = esp_wifi_get_config(WIFI_IF_AP, &wifi_config);
 
@@ -96,9 +99,10 @@ esp_err_t pmf_err = esp_wifi_get_config(WIFI_IF_AP, &wifi_config);
     wifi_config.ap.pmf_cfg.required = false;
 
     pmf_err = esp_wifi_set_config(WIFI_IF_AP, &wifi_config);
-  }
+  }*/
 
-  WiFi.softAPConfig(ip,ip,nmask);
+  
+
   
 
   dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
